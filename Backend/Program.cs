@@ -1,26 +1,58 @@
+using Microsoft.EntityFrameworkCore;
+using TaskFlow.Api.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// OpenAPI básico (solo JSON, SIN UI)
-builder.Services.AddOpenApi();
-
-var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
+// ----------------------------------------------------------
+// CORS (Angular-friendly)
+// ----------------------------------------------------------
+builder.Services.AddCors(options =>
 {
-    app.MapOpenApi(); // esto sí funciona → /openapi/v1.json
-}
-
-// app.UseHttpsRedirection();  // déjalo apagado para no dar warnings
-
-app.MapGet("/weatherforecast", () =>
-{
-    return Enumerable.Range(1, 5).Select(index =>
-        new
-        {
-            Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = "OK"
-        });
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader());
 });
 
+// ----------------------------------------------------------
+// Controllers
+// ----------------------------------------------------------
+builder.Services.AddControllers();
+
+// ----------------------------------------------------------
+// OpenAPI nativo (solo JSON)
+// /openapi/v1.json
+// ----------------------------------------------------------
+builder.Services.AddOpenApi();
+
+// ----------------------------------------------------------
+// EF Core (se activará cuando agreguemos AppDbContext)
+// ----------------------------------------------------------
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
+
+// ----------------------------------------------------------
+// Build app
+// ----------------------------------------------------------
+var app = builder.Build();
+
+// ----------------------------------------------------------
+// Middlewares
+// ----------------------------------------------------------
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();   // <-- funciona en .NET moderno
+}
+
+app.UseCors("AllowAll");
+
+// ----------------------------------------------------------
+// Controllers routing
+// ----------------------------------------------------------
+app.MapControllers();
+
+// ----------------------------------------------------------
+// Arrancar el backend
+// ----------------------------------------------------------
 app.Run();
