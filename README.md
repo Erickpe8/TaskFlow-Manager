@@ -1,6 +1,6 @@
 # TaskFlow Manager – Guía de ejecución (Backend .NET + Frontend Angular)
 
-Este proyecto está compuesto por:
+este proyecto está compuesto por:
 
 - **Backend:** .NET (Minimal API – .NET 10)
 - **Frontend:** Angular 17+ (CLI 21)
