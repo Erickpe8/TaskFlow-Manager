@@ -1,58 +1,36 @@
 using Microsoft.EntityFrameworkCore;
 using TaskFlow.Api.Data;
+using TaskFlow.Api.Interfaces;
+using TaskFlow.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ----------------------------------------------------------
-// CORS (Angular-friendly)
-// ----------------------------------------------------------
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader());
-});
-
-// ----------------------------------------------------------
-// Controllers
-// ----------------------------------------------------------
-builder.Services.AddControllers();
-
-// ----------------------------------------------------------
-// OpenAPI nativo (solo JSON)
-// /openapi/v1.json
-// ----------------------------------------------------------
-builder.Services.AddOpenApi();
-
-// ----------------------------------------------------------
-// EF Core (se activará cuando agreguemos AppDbContext)
-// ----------------------------------------------------------
+// DbContext (ajusta el provider y la connection string según tu BD)
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+// o UseNpgsql / UseSqlite según lo que uses.
 
-// ----------------------------------------------------------
-// Build app
-// ----------------------------------------------------------
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IColumnService, ColumnService>();
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-// ----------------------------------------------------------
-// Middlewares
-// ----------------------------------------------------------
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();   // <-- funciona en .NET moderno
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
+app.UseHttpsRedirection();
 
-// ----------------------------------------------------------
-// Controllers routing
-// ----------------------------------------------------------
+// Más adelante aquí irá auth, pero por ahora lo dejamos limpio
+// app.UseAuthentication();
+// app.UseAuthorization();
+
 app.MapControllers();
 
-// ----------------------------------------------------------
-// Arrancar el backend
-// ----------------------------------------------------------
 app.Run();
