@@ -30,7 +30,6 @@ import {
   makeEnvironmentProviders,
   makeStateKey,
   performanceMarkFeature,
-  require_cjs,
   require_operators,
   runInInjectionContext,
   setClassMetadata,
@@ -40,7 +39,10 @@ import {
   ɵɵdefineInjector,
   ɵɵdefineNgModule,
   ɵɵinject
-} from "./chunk-HOJQM5EA.js";
+} from "./chunk-SUZR4ZJB.js";
+import {
+  require_cjs
+} from "./chunk-6W3O5TNR.js";
 import {
   __objRest,
   __spreadValues,
@@ -2446,4 +2448,4 @@ export {
   HTTP_TRANSFER_CACHE_ORIGIN_MAP,
   withHttpTransferCache
 };
-//# sourceMappingURL=chunk-LU3ZS3ST.js.map
+//# sourceMappingURL=chunk-EGL6VEZ7.js.map

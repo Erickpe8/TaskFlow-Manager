@@ -35,7 +35,7 @@ export class TaskFormComponent implements OnInit {
     private router: Router,
     private taskService: TaskService,
     private columnService: ColumnService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadColumns();
@@ -50,11 +50,17 @@ export class TaskFormComponent implements OnInit {
     }
   }
 
+
+
   loadColumns(): void {
     this.columnService.getColumns().subscribe(cols => this.columns = cols);
   }
 
   save(): void {
+    if (!this.task.title || this.task.title.trim().length === 0) {
+      alert("El título es obligatorio");
+      return;
+    }
     if (this.isEdit) {
       this.taskService.updateTask(this.taskId, this.task).subscribe(() => {
         this.router.navigate(['/list']);

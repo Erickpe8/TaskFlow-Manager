@@ -3,6 +3,10 @@
   <div class="task-list-header">
     <h2>Lista de tareas</h2>
 
+    <button class="btn btn-create" routerLink="/tasks/create">
+      Nueva tarea
+    </button>
+
     <input type="text" class="search-input" placeholder="Buscar por título o descripción..."
       (input)="applyFilter($any($event.target).value)" />
   </div>
@@ -29,11 +33,8 @@
         <td>{{ task.dueDate | date:'shortDate' }}</td>
 
         <td class="actions">
-          <!-- Editar lo conectamos luego a un formulario -->
-          <button class="btn btn-edit">Editar</button>
-          <button class="btn btn-delete" (click)="deleteTask(task.id)">
-            Eliminar
-          </button>
+          <button class="btn btn-edit" [routerLink]="['/tasks/edit', task.id]">Editar</button>
+          <button class="btn btn-delete" (click)="deleteTask(task.id)">Eliminar</button>
         </td>
       </tr>
     </tbody>

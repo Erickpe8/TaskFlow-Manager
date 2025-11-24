@@ -1,15 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 
 import { TaskService } from '../services/task.service';
 import { ColumnService } from '../services/column.service';
+import { TaskStateService } from '../services/state.service';
+
 import { Task } from '../models/task.model';
 import { Column } from '../models/column.model';
 
 @Component({
   selector: 'app-task-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './list.html',
   styleUrls: ['./list.css']
 })
@@ -19,47 +22,26 @@ export class TaskListComponent implements OnInit {
   filteredTasks: Task[] = [];
   columns: Column[] = [];
 
-  loading = false;
-  errorMessage = '';
-
   constructor(
     private taskService: TaskService,
-    private columnService: ColumnService
+    private columnService: ColumnService,
+    private taskState: TaskStateService
   ) { }
 
   ngOnInit(): void {
-    this.loadColumns();
-    this.loadTasks();
-  }
 
-  private loadColumns(): void {
-    this.columnService.getColumns().subscribe({
-      next: (cols) => {
-        this.columns = cols;
-      },
-      error: (err: any) => {
-        console.error('Error cargando columnas', err);
-      }
+    this.columnService.getColumns().subscribe(cols => {
+      this.columns = cols;
     });
-  }
 
-  private loadTasks(): void {
-    this.loading = true;
-    this.taskService.getTasks().subscribe({
-      next: (tasks) => {
-        this.tasks = tasks;
-        this.filteredTasks = tasks;
-        this.loading = false;
-      },
-      error: (err: any) => {
-        console.error('Error cargando tareas', err);
-        this.errorMessage = 'No se pudieron cargar las tareas.';
-        this.loading = false;
-      }
+    this.taskState.tasks$.subscribe(tasks => {
+      this.tasks = tasks;
+      this.filteredTasks = [...tasks];
     });
+
+    this.taskService.getTasks().subscribe();
   }
 
-  // Filtro simple por título / descripción
   applyFilter(term: string): void {
     const value = term.toLowerCase().trim();
 
@@ -83,15 +65,6 @@ export class TaskListComponent implements OnInit {
     const ok = confirm('¿Seguro que deseas eliminar esta tarea?');
     if (!ok) return;
 
-    this.taskService.deleteTask(id).subscribe({
-      next: () => {
-        this.tasks = this.tasks.filter(t => t.id !== id);
-        this.filteredTasks = this.filteredTasks.filter(t => t.id !== id);
-      },
-      error: (err: any) => {
-        console.error('Error al eliminar la tarea', err);
-        alert('No se pudo eliminar la tarea.');
-      }
-    });
+    this.taskService.deleteTask(id).subscribe();
   }
 }
