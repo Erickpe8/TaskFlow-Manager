@@ -88,21 +88,23 @@ namespace TaskFlow.Api.Services
             return true;
         }
 
-        public async Task<bool> MoveAsync(int id, MoveTaskDto dto)
-        {
-            var task = await _context.TaskItems.FirstOrDefaultAsync(t => t.Id == id);
-            if (task == null) return false;
+    public async Task<bool> MoveAsync(int id, MoveTaskDto dto)
+    {
+        var task = await _context.TaskItems.FirstOrDefaultAsync(t => t.Id == id);
+        if (task == null) return false;
 
-            task.ColumnId = dto.ColumnId;
-            task.Order = dto.NewOrder;
-            task.UpdatedAt = DateTime.UtcNow;
+        // Cambiar columna
+        task.ColumnId = dto.ColumnId;
 
-            // Aquí podríamos reordenar las demás tareas de la columna si quieres algo más
-            // sofisticado. De momento, dejamos el valor que mande el frontend.
+        // Cambiar orden
+        task.Order = dto.NewOrder;
 
-            await _context.SaveChangesAsync();
-            return true;
-        }
+        // Actualizar fecha
+        task.UpdatedAt = DateTime.Now;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
 
         // ------------ Mapeos privados ------------
 
