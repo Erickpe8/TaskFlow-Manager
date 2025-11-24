@@ -1,6 +1,6 @@
 import {
   isPlatformBrowser
-} from "./chunk-U7QLNTJ2.js";
+} from "./chunk-U2HIU4IB.js";
 import "./chunk-SJSIPLJ5.js";
 import {
   APP_ID,
@@ -81,7 +81,7 @@ import {
   ɵɵqueryRefresh,
   ɵɵstyleProp,
   ɵɵviewQuery
-} from "./chunk-VMVJWJK4.js";
+} from "./chunk-H5BAAQXB.js";
 
 // node_modules/@angular/cdk/fesm2022/_shadow-dom-chunk.mjs
 var shadowDomIsSupported;

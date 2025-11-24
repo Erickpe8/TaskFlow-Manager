@@ -1,1 +1,46 @@
-<p>list works!</p>
+<div class="task-list">
+
+  <div class="task-list-header">
+    <h2>Lista de tareas</h2>
+
+    <input type="text" class="search-input" placeholder="Buscar por título o descripción..."
+      (input)="applyFilter($any($event.target).value)" />
+  </div>
+
+  <div *ngIf="loading" class="info">Cargando tareas...</div>
+  <div *ngIf="!loading && errorMessage" class="error">{{ errorMessage }}</div>
+
+  <table *ngIf="!loading && filteredTasks.length > 0">
+    <thead>
+      <tr>
+        <th>Título</th>
+        <th>Descripción</th>
+        <th>Estado</th>
+        <th>Fecha límite</th>
+        <th style="width: 140px;">Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let task of filteredTasks">
+        <td>{{ task.title }}</td>
+        <td>{{ task.description }}</td>
+        <td>{{ getColumnName(task.columnId) }}</td>
+        <td>{{ task.dueDate | date:'shortDate' }}</td>
+
+        <td class="actions">
+          <!-- Editar lo conectamos luego a un formulario -->
+          <button class="btn btn-edit">Editar</button>
+          <button class="btn btn-delete" (click)="deleteTask(task.id)">
+            Eliminar
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="!loading && !errorMessage && filteredTasks.length === 0" class="info">
+    No hay tareas para mostrar.
+  </div>
+
+</div>
