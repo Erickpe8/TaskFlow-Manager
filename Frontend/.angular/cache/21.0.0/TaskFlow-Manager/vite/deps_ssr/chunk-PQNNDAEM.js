@@ -4,16 +4,16 @@ import {
   ROUTES,
   Router,
   loadChildren
-} from "./chunk-QGXYQ2CT.js";
+} from "./chunk-QQXH5NEE.js";
 import {
   BrowserDomAdapter,
   BrowserModule,
   EVENT_MANAGER_PLUGINS,
   EventManagerPlugin
-} from "./chunk-4XBXDQR2.js";
+} from "./chunk-XXL4BFBL.js";
 import {
   HTTP_ROOT_INTERCEPTOR_FNS
-} from "./chunk-TGYQEBLD.js";
+} from "./chunk-2SAUXKTH.js";
 import {
   APP_BASE_HREF,
   NullViewportScroller,
@@ -22,7 +22,7 @@ import {
   ViewportScroller,
   getDOM,
   setRootDomAdapter
-} from "./chunk-NFJE737F.js";
+} from "./chunk-ARJZ7F4Y.js";
 import {
   XhrFactory
 } from "./chunk-45TAMYGW.js";
@@ -60,7 +60,6 @@ import {
   makeEnvironmentProviders,
   platformCore,
   provideEnvironmentInitializer,
-  require_cjs,
   resetCompiledComponents,
   runInInjectionContext,
   setClassMetadata,
@@ -71,7 +70,10 @@ import {
   ɵɵdefineInjector,
   ɵɵdefineNgModule,
   ɵɵinject
-} from "./chunk-NS4GTFKO.js";
+} from "./chunk-4N5CXU6Z.js";
+import {
+  require_cjs
+} from "./chunk-O5J3CNTX.js";
 import {
   __objRest,
   __spreadProps,
@@ -28253,4 +28255,4 @@ export {
   AngularAppEngine,
   createRequestHandler
 };
-//# sourceMappingURL=chunk-D43PJC2L.js.map
+//# sourceMappingURL=chunk-PQNNDAEM.js.map

@@ -1,7 +1,7 @@
 import { createRequire } from 'module';const require = createRequire(import.meta.url);
 import {
   isPlatformBrowser
-} from "./chunk-NFJE737F.js";
+} from "./chunk-ARJZ7F4Y.js";
 import "./chunk-45TAMYGW.js";
 import {
   APP_ID,
@@ -37,7 +37,6 @@ import {
   forwardRef,
   inject,
   numberAttribute,
-  require_cjs,
   require_operators,
   setClassMetadata,
   signal,
@@ -62,7 +61,10 @@ import {
   ɵɵqueryRefresh,
   ɵɵstyleProp,
   ɵɵviewQuery
-} from "./chunk-NS4GTFKO.js";
+} from "./chunk-4N5CXU6Z.js";
+import {
+  require_cjs
+} from "./chunk-O5J3CNTX.js";
 import {
   __toESM
 } from "./chunk-6DU2HRTW.js";

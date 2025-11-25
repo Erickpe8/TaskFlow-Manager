@@ -18,8 +18,9 @@ namespace TaskFlow.Api.Services
         public async Task<List<TaskDto>> GetAllAsync()
         {
             var tasks = await _context.TaskItems
+                .Include(t => t.Column)              // 🔥 NECESARIO
                 .AsNoTracking()
-                .OrderBy(t => t.ColumnId)
+                .OrderBy(t => t.Column.Order)
                 .ThenBy(t => t.Order)
                 .ToListAsync();
 
@@ -29,6 +30,7 @@ namespace TaskFlow.Api.Services
         public async Task<TaskDto?> GetByIdAsync(int id)
         {
             var task = await _context.TaskItems
+                .Include(t => t.Column)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -37,7 +39,6 @@ namespace TaskFlow.Api.Services
 
         public async Task<TaskDto> CreateAsync(CreateTaskDto dto)
         {
-            // Calcular el último orden en la columna
             var lastOrder = await _context.TaskItems
                 .Where(t => t.ColumnId == dto.ColumnId)
                 .MaxAsync(t => (int?)t.Order) ?? 0;
@@ -57,12 +58,17 @@ namespace TaskFlow.Api.Services
             _context.TaskItems.Add(entity);
             await _context.SaveChangesAsync();
 
+            await _context.Entry(entity).Reference(t => t.Column).LoadAsync();
+
             return MapToDto(entity);
         }
 
         public async Task<TaskDto?> UpdateAsync(int id, UpdateTaskDto dto)
         {
-            var task = await _context.TaskItems.FirstOrDefaultAsync(t => t.Id == id);
+            var task = await _context.TaskItems
+                .Include(t => t.Column)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
             if (task == null) return null;
 
             task.Title = dto.Title;
@@ -74,6 +80,8 @@ namespace TaskFlow.Api.Services
             task.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            await _context.Entry(task).Reference(t => t.Column).LoadAsync();
 
             return MapToDto(task);
         }
@@ -93,20 +101,13 @@ namespace TaskFlow.Api.Services
             var task = await _context.TaskItems.FirstOrDefaultAsync(t => t.Id == id);
             if (task == null) return false;
 
-            // Cambiar columna
             task.ColumnId = dto.ColumnId;
-
-            // Cambiar orden
             task.Order = dto.NewOrder;
-
-            // Actualizar fecha
-            task.UpdatedAt = DateTime.Now;
+            task.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;
         }
-
-        // ------------ Mapeos privados ------------
 
         private static TaskDto MapToDto(TaskItem entity)
         {
@@ -116,9 +117,78 @@ namespace TaskFlow.Api.Services
                 Title = entity.Title,
                 Description = entity.Description,
                 ColumnId = entity.ColumnId,
+                ColumnName = entity.Column?.Name ?? "", // 🔥 ESTA LÍNEA ARREGLA EL LISTADO
                 Priority = entity.Priority,
                 DueDate = entity.DueDate,
                 Order = entity.Order
+            };
+        }
+
+        // Services/TaskService.cs - Agrega este método
+        public async Task<PaginatedResult<TaskDto>> GetFilteredAsync(TaskFilterDto filter)
+        {
+            var query = _context.TaskItems
+                .Include(t => t.Column)
+                .AsNoTracking()
+                .AsQueryable();
+
+            // Búsqueda
+            if (!string.IsNullOrWhiteSpace(filter.Search))
+            {
+                var search = filter.Search.ToLower();
+                query = query.Where(t =>
+                    t.Title.ToLower().Contains(search) ||
+                    (t.Description != null && t.Description.ToLower().Contains(search))
+                );
+            }
+
+            // Filtro por columna
+            if (filter.ColumnId.HasValue)
+            {
+                query = query.Where(t => t.ColumnId == filter.ColumnId.Value);
+            }
+
+            // Filtro por prioridad
+            if (filter.Priority.HasValue)
+            {
+                query = query.Where(t => t.Priority == filter.Priority.Value);
+            }
+
+            // Ordenamiento
+            query = filter.SortBy?.ToLower() switch
+            {
+                "priority" => filter.SortDesc
+                    ? query.OrderByDescending(t => t.Priority)
+                    : query.OrderBy(t => t.Priority),
+                "duedate" => filter.SortDesc
+                    ? query.OrderByDescending(t => t.DueDate)
+                    : query.OrderBy(t => t.DueDate),
+                "order" => filter.SortDesc
+                    ? query.OrderByDescending(t => t.Order)
+                    : query.OrderBy(t => t.Order),
+                "column" => filter.SortDesc
+                    ? query.OrderByDescending(t => t.Column.Name)
+                    : query.OrderBy(t => t.Column.Name),
+                _ => filter.SortDesc
+                    ? query.OrderByDescending(t => t.Title)
+                    : query.OrderBy(t => t.Title)
+            };
+
+            // Total antes de paginar
+            var totalCount = await query.CountAsync();
+
+            // Paginación
+            var items = await query
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            return new PaginatedResult<TaskDto>
+            {
+                Items = items.Select(MapToDto).ToList(),
+                TotalCount = totalCount,
+                Page = filter.Page,
+                PageSize = filter.PageSize
             };
         }
     }

@@ -5,6 +5,7 @@ namespace TaskFlow.Api.Interfaces
     public interface ITaskService
     {
         Task<List<TaskDto>> GetAllAsync();
+        Task<PaginatedResult<TaskDto>> GetFilteredAsync(TaskFilterDto filter);
         Task<TaskDto?> GetByIdAsync(int id);
         Task<TaskDto> CreateAsync(CreateTaskDto dto);
         Task<TaskDto?> UpdateAsync(int id, UpdateTaskDto dto);

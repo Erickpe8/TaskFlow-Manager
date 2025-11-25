@@ -25,6 +25,15 @@ namespace TaskFlow.Api.Controllers
             return Ok(tasks);
         }
 
+        // GET: api/tasks/filtered
+        [HttpGet("filtered")]
+        [Authorize(Policy = "Tasks.Read")]
+        public async Task<ActionResult<PaginatedResult<TaskDto>>> GetFiltered([FromQuery] TaskFilterDto filter)
+        {
+            var result = await _taskService.GetFilteredAsync(filter);
+            return Ok(result);
+        }
+
         // GET: api/tasks/5
         [HttpGet("{id:int}")]
         [Authorize(Policy = "Tasks.Read")]
