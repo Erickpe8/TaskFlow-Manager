@@ -1,0 +1,8 @@
+bin/
+obj/
+*.user
+*.db
+*.log
+.vs/
+/app/publish/
+/app/
