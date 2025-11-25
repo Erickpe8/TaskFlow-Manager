@@ -1,7 +1,7 @@
 services:
   api:
     build: .
-    image: TaskFlow.Api-api:latest
+    image: taskflow.api:latest
     env_file:
       - .env
     ports:

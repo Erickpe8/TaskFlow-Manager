@@ -61,7 +61,7 @@ namespace TaskFlow.Api.Data
                 .ToList();
 
             var studentPermissionNames = new[]
-           {
+            {
                 "users.read",
                 "tasks.read", "tasks.create", "tasks.update",
                 "columns.read", "columns.create", "columns.update"
