@@ -145,7 +145,24 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // -------------------------
 // 7. AUTORIZACIÓN (DEJAR LISTO PARA ESCALAR)
 // -------------------------
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("columns.read", policy => policy.RequireAssertion(_ => true));
+    options.AddPolicy("columns.create", policy => policy.RequireAssertion(_ => true));
+    options.AddPolicy("columns.update", policy => policy.RequireAssertion(_ => true));
+    options.AddPolicy("columns.delete", policy => policy.RequireAssertion(_ => true));
+
+    options.AddPolicy("tasks.read", policy => policy.RequireAssertion(_ => true));
+    options.AddPolicy("tasks.create", policy => policy.RequireAssertion(_ => true));
+    options.AddPolicy("tasks.update", policy => policy.RequireAssertion(_ => true));
+    options.AddPolicy("tasks.delete", policy => policy.RequireAssertion(_ => true));
+
+    options.AddPolicy("users.read", policy => policy.RequireAssertion(_ => true));
+    options.AddPolicy("users.create", policy => policy.RequireAssertion(_ => true));
+    options.AddPolicy("users.update", policy => policy.RequireAssertion(_ => true));
+    options.AddPolicy("users.delete", policy => policy.RequireAssertion(_ => true));
+});
+
 
 // -------------------------
 // 8. BUILD APP

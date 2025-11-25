@@ -14,27 +14,26 @@ export class TasksService {
   private readonly baseUrl = 'http://localhost:5208';
 
   private getAuthHeaders() {
-
-    const isBrowser = isPlatformBrowser(this.platformId);
-
-    if (!isBrowser) {
-      // 🚀 SSR: NO usar localStorage, retornar headers vacíos
-      return {
-        headers: new HttpHeaders({})
-      };
+    if (typeof window === 'undefined') {
+      return {}; // SSR → NO token, no explota
     }
 
-    const token = localStorage.getItem('token') ?? '';
+    const token = localStorage.getItem('token');
+
+    if (!token) return {};
 
     return {
-      headers: new HttpHeaders({
+      headers: {
         Authorization: `Bearer ${token}`
-      })
+      }
     };
   }
 
-  getBoard(): Observable<ColumnDto[]> {
-    return this.http.get<ColumnDto[]>(`${this.baseUrl}/api/Columns`, this.getAuthHeaders());
+  getBoard() {
+    return this.http.get<ColumnDto[]>(
+      `${this.baseUrl}/api/Columns`,
+      this.getAuthHeaders()
+    );
   }
 
   moveTask(taskId: number, columnId: number, newOrder: number) {

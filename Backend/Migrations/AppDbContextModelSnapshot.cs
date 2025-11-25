@@ -7,7 +7,7 @@ using TaskFlow.Api.Data;
 
 #nullable disable
 
-namespace TaskFlow.Api.Data.Migrations
+namespace TaskFlow.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     partial class AppDbContextModelSnapshot : ModelSnapshot
