@@ -114,6 +114,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IColumnService, ColumnService>();
+builder.Services.AddScoped<IExportService, ExportService>(); 
 
 // -------------------------
 // 6. JWT ESTABLE PARA PRODUCCIÓN
