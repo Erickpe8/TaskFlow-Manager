@@ -1,1 +1,25 @@
-<p>login works!</p>
+<div class="login-container">
+
+  <div class="card">
+    <h2>TaskFlow Manager</h2>
+
+    <p class="error" *ngIf="errorMessage()">
+      {{ errorMessage() }}
+    </p>
+
+    <form (submit)="login(); $event.preventDefault()">
+
+      <label>Email</label>
+      <input type="email" [(ngModel)]="email" name="email" required>
+
+      <label>Contraseña</label>
+      <input type="password" [(ngModel)]="password" name="password" required>
+
+      <button [disabled]="loading()">
+        {{ loading() ? 'Ingresando...' : 'Iniciar sesión' }}
+      </button>
+
+    </form>
+  </div>
+
+</div>

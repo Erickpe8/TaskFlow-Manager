@@ -1,0 +1,40 @@
+.wrapper {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 260px;
+  background: #1D1616;
+  padding: 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar nav a {
+  display: block;
+  margin: 8px 0;
+  padding: 12px;
+  background: #8E1616;
+  border-radius: 8px;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+}
+
+.logout {
+  margin-top: auto;
+  background: #D84040;
+  padding: 12px;
+  border-radius: 8px;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.content {
+  flex: 1;
+  background: #EEEEEE;
+  padding: 20px;
+}

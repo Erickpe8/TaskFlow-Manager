@@ -1,1 +1,36 @@
-<p>kanban works!</p>
+<div class="board" cdkDropListGroup>
+
+  <div
+    class="column"
+    *ngFor="let col of columns"
+    [attr.data-id]="col.Id">
+
+    <h3>{{ col.Name }}</h3>
+
+    <div
+      class="task-list"
+      cdkDropList
+      [id]="'column-' + col.Id"
+      [cdkDropListData]="col.Tasks"
+      [cdkDropListConnectedTo]="connectedDropIds"
+      (cdkDropListDropped)="drop($event, col)">
+
+      <div
+        class="task-card"
+        *ngFor="let task of col.Tasks"
+        cdkDrag>
+
+        <h4>{{ task.Title }}</h4>
+        <p class="desc">{{ task.Description }}</p>
+
+        <p class="meta">
+          <span>Prioridad: {{ task.Priority }}</span>
+          <span *ngIf="task.DueDate">Vence: {{ task.DueDate | date:'shortDate' }}</span>
+        </p>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>

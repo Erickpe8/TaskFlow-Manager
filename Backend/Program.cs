@@ -11,20 +11,37 @@ using TaskFlow.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+var env = builder.Environment;
+
+// -------------------------
+// 1. CONTROLLERS
+// -------------------------
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.WriteIndented = false;
+    });
+
+// -------------------------
+// 2. SWAGGER (PROD-READY)
+// -------------------------
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "TaskFlow.Api API",
-        Version = "v1"
+        Title = "TaskFlow API",
+        Version = "v1",
+        Description = "API del sistema TaskFlow Manager (.NET + Angular)"
     });
 
-    var securityScheme = new OpenApiSecurityScheme
+    // JWT
+    var jwtScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Description = "Ingrese el token en el formato: Bearer {token}",
+        Description = "Bearer {token}",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
@@ -36,20 +53,19 @@ builder.Services.AddSwaggerGen(options =>
         }
     };
 
-
-    options.AddSecurityDefinition("Bearer", securityScheme);
+    options.AddSecurityDefinition("Bearer", jwtScheme);
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        {
-            securityScheme,
-            Array.Empty<string>()
-        }
+        { jwtScheme, Array.Empty<string>() }
     });
 });
 
+// -------------------------
+// 3. CORS (PROD + DOCKER + FRONTEND)
+// -------------------------
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("FrontendPolicy", policy =>
     {
         policy
             .AllowAnyHeader()
@@ -57,140 +73,125 @@ builder.Services.AddCors(options =>
             .AllowCredentials()
             .SetIsOriginAllowed(origin =>
             {
-                // Permite Angular local
-                if (origin.StartsWith("http://localhost")) return true;
-                // Permite cualquier dominio necesario en Docker/VPS
-                if (origin.Contains("your-vps-ip")) return true;
-                if (origin.Contains("your-domain.com")) return true;
+                // Desarrollo Angular
+                if (origin.StartsWith("http://localhost:4200")) return true;
+
+                // Docker local
+                if (origin.StartsWith("http://host.docker.internal")) return true;
+
+                // Dominio en el VPS
+                if (origin.Contains("tudominio.com")) return true;
+
+                // IP pública del VPS
+                if (origin.StartsWith("http://TU_IP_PUBLICA")) return true;
+
                 return false;
             });
     });
 });
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+// -------------------------
+// 4. BASE DE DATOS
+// -------------------------
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection")
     ?? builder.Configuration["ConnectionStrings:DefaultConnection"]
-    ?? throw new InvalidOperationException("DefaultConnection is not configured.");
+    ?? throw new Exception("No hay cadena de conexión.");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(connectionString));
+{
+    options.UseSqlite(connectionString);
 
+    // Mejor performance en PRODUCCIÓN
+    if (env.IsProduction())
+        options.EnableSensitiveDataLogging(false);
+});
+
+// -------------------------
+// 5. INYECCIÓN DE SERVICIOS
+// -------------------------
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IColumnService, ColumnService>();
 
+// -------------------------
+// 6. JWT ESTABLE PARA PRODUCCIÓN
+// -------------------------
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var jwtKey = jwtSection.GetValue<string>("Key")
-    ?? throw new InvalidOperationException("Jwt:Key is not configured.");
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+var key = Encoding.UTF8.GetBytes(jwtSection["Key"]!);
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateIssuerSigningKey = true,
-        ValidateLifetime = true,
-        ValidIssuer = jwtSection.GetValue<string>("Issuer"),
-        ValidAudience = jwtSection.GetValue<string>("Audience"),
-        IssuerSigningKey = signingKey,
-        ClockSkew = TimeSpan.Zero
-    };
+        options.RequireHttpsMetadata = env.IsProduction();
+        options.SaveToken = true;
 
-    options.Events = new JwtBearerEvents
-    {
-        OnTokenValidated = async context =>
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            var tokenService = context.HttpContext.RequestServices.GetRequiredService<ITokenService>();
-            var jwt = context.SecurityToken as JsonWebToken;
-            var rawToken = jwt?.EncodedToken
-                       ?? context.Request.Headers["Authorization"]
-                               .ToString()
-                               .Replace("Bearer ", "", StringComparison.OrdinalIgnoreCase)
-                               .Trim();
-            var subjectId = context.Principal?.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)
-           ?? context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = jwtSection["Issuer"],
+            ValidAudience = jwtSection["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(key),
 
-            if (string.IsNullOrWhiteSpace(subjectId) || !int.TryParse(subjectId, out var userId))
-            {
-                context.Fail("Token sin identificador de usuario.");
-                return;
-            }
+            // PRODUCCIÓN: un poco de tolerancia por hora del VPS
+            ClockSkew = TimeSpan.FromSeconds(10)
+        };
+    });
 
-            if (string.IsNullOrWhiteSpace(rawToken))
-            {
-                context.Fail("Token no válido.");
-                return;
-            }
+// -------------------------
+// 7. AUTORIZACIÓN (DEJAR LISTO PARA ESCALAR)
+// -------------------------
+builder.Services.AddAuthorization();
 
-            var isActive = await tokenService.IsTokenActiveAsync(rawToken, userId, jwt?.ValidTo ?? DateTime.UtcNow);
-            if (!isActive)
-            {
-                context.Fail("El token está revocado o expiró.");
-            }
-        }
-    };
-});
-
-builder.Services.AddAuthorization(options =>
-{
-    // USERS
-    options.AddPolicy("Users.Read", policy =>
-        policy.RequireClaim("permissions", "users.read"));
-    options.AddPolicy("Users.Create", policy =>
-        policy.RequireClaim("permissions", "users.create"));
-    options.AddPolicy("Users.Update", policy =>
-        policy.RequireClaim("permissions", "users.update"));
-    options.AddPolicy("Users.Delete", policy =>
-        policy.RequireClaim("permissions", "users.delete"));
-
-    // TASKS
-    options.AddPolicy("Tasks.Read", policy =>
-        policy.RequireClaim("permissions", "tasks.read"));
-    options.AddPolicy("Tasks.Create", policy =>
-        policy.RequireClaim("permissions", "tasks.create"));
-    options.AddPolicy("Tasks.Update", policy =>
-        policy.RequireClaim("permissions", "tasks.update"));
-    options.AddPolicy("Tasks.Delete", policy =>
-        policy.RequireClaim("permissions", "tasks.delete"));
-
-    // COLUMNS
-    options.AddPolicy("Columns.Read", policy =>
-        policy.RequireClaim("permissions", "columns.read"));
-    options.AddPolicy("Columns.Create", policy =>
-        policy.RequireClaim("permissions", "columns.create"));
-    options.AddPolicy("Columns.Update", policy =>
-        policy.RequireClaim("permissions", "columns.update"));
-    options.AddPolicy("Columns.Delete", policy =>
-        policy.RequireClaim("permissions", "columns.delete"));
-});
-
+// -------------------------
+// 8. BUILD APP
+// -------------------------
 var app = builder.Build();
-app.UseCors("AllowFrontend");
-if (app.Environment.IsDevelopment())
+
+// -------------------------
+// 9. Swagger configurado por variable de entorno
+// -------------------------
+var swaggerEnabled = builder.Configuration.GetValue<bool>("Swagger:Enabled");
+
+if (swaggerEnabled || env.IsDevelopment())
 {
-
-    using (var scope = app.Services.CreateScope())
-    {
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.Migrate();
-        await SeedData.InitializeAsync(db);
-    }
-
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// -------------------------
+// 10. CORS
+// -------------------------
+app.UseCors("FrontendPolicy");
+
+// -------------------------
+// 11. MIGRACIONES EN PRODUCCIÓN (OPCIONAL Y SEGURO)
+// -------------------------
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    if (builder.Configuration.GetValue<bool>("Database:AutoMigrate"))
+    {
+        db.Database.Migrate();
+        await SeedData.InitializeAsync(db);
+    }
+}
+
+// -------------------------
+// 12. HTTPS + AUTH
+// -------------------------
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+// -------------------------
+// 13. ENDPOINTS
+// -------------------------
 app.MapControllers();
 
 app.Run();
