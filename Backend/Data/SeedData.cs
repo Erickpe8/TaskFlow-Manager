@@ -55,7 +55,7 @@ namespace TaskFlow.Api.Data
                 context.Users.Add(new User
                 {
                     Email = "doc_js_galindo@fesc.edu.co",
-                    FullName = "Docente Revisión",
+                    FullName = "Docente",
                     Role = "Teacher",
                     PasswordHash = passwordHash
                 });
