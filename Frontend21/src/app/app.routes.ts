@@ -1,21 +1,21 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './auth/login/login';
-import { authGuard } from './core/auth.guard';
-import { Component } from '@angular/core';
 
-@Component({
-  standalone: true,
-  template: `
-    <div style="padding: 24px">
-      <h2>Bienvenido al panel</h2>
-      <p>Aquí luego irá el Kanban / Lista de tareas.</p>
-    </div>
-  `
-})
-export class DashboardPlaceholderComponent {}
+import { LoginComponent } from './auth/login/login';
+import { KanbanComponent } from './tasks/kanban/kanban';
+import { TaskListComponent } from './tasks/list/list';
+import { TaskFormComponent } from './tasks/task-form/task-form';
+
+import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
-  { path: '', component: DashboardPlaceholderComponent, canActivate: [authGuard] },
-  { path: '**', redirectTo: '' }
+
+  { path: 'kanban', component: KanbanComponent, canActivate: [authGuard] },
+  { path: 'list', component: TaskListComponent, canActivate: [authGuard] },
+
+  { path: 'tasks/create', component: TaskFormComponent, canActivate: [authGuard] },
+  { path: 'tasks/edit/:id', component: TaskFormComponent, canActivate: [authGuard] },
+
+  { path: '', redirectTo: 'kanban', pathMatch: 'full' },
+  { path: '**', redirectTo: 'kanban' }
 ];
