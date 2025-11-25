@@ -3,6 +3,7 @@ using TaskFlow.Api.Domain;
 using TaskFlow.Api.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using TaskFlow.Api.Interfaces;
 
 namespace TaskFlow.Api.Services;
 

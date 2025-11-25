@@ -1,6 +1,5 @@
-using TaskFlow.Api.Domain;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using TaskFlow.Api.Domain;
 
 namespace TaskFlow.Api.Data;
 
@@ -16,10 +15,54 @@ public class AppDbContext : DbContext
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<UserToken> UserTokens => Set<UserToken>();
+    public DbSet<Column> Columns { get; set; } = null!;
+    public DbSet<TaskItem> TaskItems { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // COLUMN
+        modelBuilder.Entity<Column>(entity =>
+        {
+            entity.ToTable("Columns");
+            entity.HasKey(c => c.Id);
+
+            entity.Property(c => c.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(c => c.Order)
+                .IsRequired();
+        });
+
+        // TASKITEM
+        modelBuilder.Entity<TaskItem>(entity =>
+        {
+            entity.ToTable("Tasks");
+            entity.HasKey(t => t.Id);
+
+            entity.Property(t => t.Title)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(t => t.Description)
+                .HasMaxLength(1000);
+
+            entity.Property(t => t.Order)
+                .IsRequired();
+
+            entity.Property(t => t.CreatedAt)
+                .IsRequired();
+
+            entity.Property(t => t.UpdatedAt)
+                .IsRequired();
+
+            entity.HasOne(t => t.Column)
+                .WithMany(c => c.Tasks)
+                .HasForeignKey(t => t.ColumnId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<User>(entity =>
         {
@@ -73,53 +116,5 @@ public class AppDbContext : DbContext
                 .HasForeignKey(ut => ut.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-
-        SeedData(modelBuilder);
-    }
-
-    private void SeedData(ModelBuilder modelBuilder)
-    {
-        var teacherRoleId = 1;
-        var studentRoleId = 2;
-
-        modelBuilder.Entity<Role>().HasData(
-            new Role { Id = teacherRoleId, Name = "Teacher" },
-            new Role { Id = studentRoleId, Name = "Student" }
-        );
-
-        modelBuilder.Entity<Permission>().HasData(
-            new Permission { Id = 1, Name = "users.read" },
-            new Permission { Id = 2, Name = "users.create" },
-            new Permission { Id = 3, Name = "users.update" },
-            new Permission { Id = 4, Name = "users.delete" }
-        );
-
-        modelBuilder.Entity<RolePermission>().HasData(
-            new RolePermission { RoleId = teacherRoleId, PermissionId = 1 },
-            new RolePermission { RoleId = teacherRoleId, PermissionId = 2 },
-            new RolePermission { RoleId = teacherRoleId, PermissionId = 3 },
-            new RolePermission { RoleId = teacherRoleId, PermissionId = 4 }
-        );
-
-        modelBuilder.Entity<RolePermission>().HasData(
-           new RolePermission { RoleId = studentRoleId, PermissionId = 1 }
-       );
-
-        var seededUser = new User
-        {
-            Id = 1,
-            Email = "doc_js_galindo@fesc.edu.co",
-            FullName = "Docente Galindo",
-            IsActive = true
-        };
-
-        var passwordHasher = new PasswordHasher<User>();
-        seededUser.PasswordHash = passwordHasher.HashPassword(seededUser, "0123456789");
-
-        modelBuilder.Entity<User>().HasData(seededUser);
-
-        modelBuilder.Entity<UserRole>().HasData(
-            new UserRole { UserId = seededUser.Id, RoleId = teacherRoleId }
-        );
     }
 }

@@ -1,5 +1,3 @@
-using TaskFlow.Api.Data;
-using TaskFlow.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -7,6 +5,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
 using System.Text;
+using TaskFlow.Api.Data;
+using TaskFlow.Api.Interfaces;
+using TaskFlow.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +47,26 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
+            .SetIsOriginAllowed(origin =>
+            {
+                // Permite Angular local
+                if (origin.StartsWith("http://localhost")) return true;
+                // Permite cualquier dominio necesario en Docker/VPS
+                if (origin.Contains("your-vps-ip")) return true;
+                if (origin.Contains("your-domain.com")) return true;
+                return false;
+            });
+    });
+});
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? builder.Configuration["ConnectionStrings:DefaultConnection"]
     ?? throw new InvalidOperationException("DefaultConnection is not configured.");
@@ -55,6 +76,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IColumnService, ColumnService>();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection.GetValue<string>("Key")
@@ -116,6 +139,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
+    // USERS
     options.AddPolicy("Users.Read", policy =>
         policy.RequireClaim("permissions", "users.read"));
     options.AddPolicy("Users.Create", policy =>
@@ -124,10 +148,30 @@ builder.Services.AddAuthorization(options =>
         policy.RequireClaim("permissions", "users.update"));
     options.AddPolicy("Users.Delete", policy =>
         policy.RequireClaim("permissions", "users.delete"));
+
+    // TASKS
+    options.AddPolicy("Tasks.Read", policy =>
+        policy.RequireClaim("permissions", "tasks.read"));
+    options.AddPolicy("Tasks.Create", policy =>
+        policy.RequireClaim("permissions", "tasks.create"));
+    options.AddPolicy("Tasks.Update", policy =>
+        policy.RequireClaim("permissions", "tasks.update"));
+    options.AddPolicy("Tasks.Delete", policy =>
+        policy.RequireClaim("permissions", "tasks.delete"));
+
+    // COLUMNS
+    options.AddPolicy("Columns.Read", policy =>
+        policy.RequireClaim("permissions", "columns.read"));
+    options.AddPolicy("Columns.Create", policy =>
+        policy.RequireClaim("permissions", "columns.create"));
+    options.AddPolicy("Columns.Update", policy =>
+        policy.RequireClaim("permissions", "columns.update"));
+    options.AddPolicy("Columns.Delete", policy =>
+        policy.RequireClaim("permissions", "columns.delete"));
 });
 
 var app = builder.Build();
-
+app.UseCors("AllowFrontend");
 if (app.Environment.IsDevelopment())
 {
 
@@ -135,6 +179,7 @@ if (app.Environment.IsDevelopment())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Database.Migrate();
+        await SeedData.InitializeAsync(db);
     }
 
     app.UseSwagger();

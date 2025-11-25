@@ -1,6 +1,6 @@
 using TaskFlow.Api.Domain;
 
-namespace TaskFlow.Api.Services;
+namespace TaskFlow.Api.Interfaces;
 
 public interface ITokenService
 {

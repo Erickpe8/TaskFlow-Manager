@@ -1,7 +1,7 @@
 using TaskFlow.Api.Domain;
 using TaskFlow.Api.DTOs;
 
-namespace TaskFlow.Api.Services;
+namespace TaskFlow.Api.Interfaces;
 
 public interface IUserService
 {
