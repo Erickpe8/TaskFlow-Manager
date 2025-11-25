@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TaskFlow.Api.Data;
+using TaskFlow.Api.Domain;
 using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Interfaces;
-using TaskFlow.Api.Models;
 
 namespace TaskFlow.Api.Services
 {

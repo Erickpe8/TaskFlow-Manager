@@ -1,3 +1,4 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Interfaces;
@@ -18,6 +19,7 @@ namespace TaskFlow.Api.Controllers
         // GET: api/columns
         // Devuelve las columnas con sus tareas → ideal para el Kanban
         [HttpGet]
+        [Authorize(Policy = "Columns.read")]
         public async Task<ActionResult<IEnumerable<ColumnDto>>> GetAll()
         {
             var columns = await _columnService.GetAllWithTasksAsync();
@@ -26,6 +28,7 @@ namespace TaskFlow.Api.Controllers
 
         // GET: api/columns/3
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Columns.read")]
         public async Task<ActionResult<ColumnDto>> GetById(int id)
         {
             var column = await _columnService.GetByIdAsync(id);
@@ -36,6 +39,7 @@ namespace TaskFlow.Api.Controllers
 
         // POST: api/columns
         [HttpPost]
+        [Authorize(Policy = "Columns.create")]
         public async Task<ActionResult<ColumnDto>> Create([FromBody] CreateColumnDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -51,6 +55,7 @@ namespace TaskFlow.Api.Controllers
 
         // PUT: api/columns/3
         [HttpPut("{id:int}")]
+        [Authorize(Policy = "Columns.update")]
         public async Task<ActionResult<ColumnDto>> Update(int id, [FromBody] UpdateColumnDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -63,6 +68,7 @@ namespace TaskFlow.Api.Controllers
 
         // DELETE: api/columns/3
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Columns.delete")]
         public async Task<IActionResult> Delete(int id)
         {
             var ok = await _columnService.DeleteAsync(id);

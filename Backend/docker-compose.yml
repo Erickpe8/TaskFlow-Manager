@@ -1,0 +1,19 @@
+services:
+  api:
+    build: .
+    image: TaskFlow.Api-api:latest
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - sqlite_data:/data
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=${CONNECTION_STRING}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__ExpiresMinutes=${JWT_EXPIRES_MINUTES}
+volumes:
+  sqlite_data:

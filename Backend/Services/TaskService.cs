@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TaskFlow.Api.Data;
+using TaskFlow.Api.Domain;
 using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Interfaces;
-using TaskFlow.Api.Models;
 
 namespace TaskFlow.Api.Services
 {
@@ -88,23 +88,23 @@ namespace TaskFlow.Api.Services
             return true;
         }
 
-    public async Task<bool> MoveAsync(int id, MoveTaskDto dto)
-    {
-        var task = await _context.TaskItems.FirstOrDefaultAsync(t => t.Id == id);
-        if (task == null) return false;
+        public async Task<bool> MoveAsync(int id, MoveTaskDto dto)
+        {
+            var task = await _context.TaskItems.FirstOrDefaultAsync(t => t.Id == id);
+            if (task == null) return false;
 
-        // Cambiar columna
-        task.ColumnId = dto.ColumnId;
+            // Cambiar columna
+            task.ColumnId = dto.ColumnId;
 
-        // Cambiar orden
-        task.Order = dto.NewOrder;
+            // Cambiar orden
+            task.Order = dto.NewOrder;
 
-        // Actualizar fecha
-        task.UpdatedAt = DateTime.Now;
+            // Actualizar fecha
+            task.UpdatedAt = DateTime.Now;
 
-        await _context.SaveChangesAsync();
-        return true;
-    }
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
         // ------------ Mapeos privados ------------
 

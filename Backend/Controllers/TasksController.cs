@@ -1,3 +1,4 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskFlow.Api.DTOs;
 using TaskFlow.Api.Interfaces;
@@ -17,6 +18,7 @@ namespace TaskFlow.Api.Controllers
 
         // GET: api/tasks
         [HttpGet]
+        [Authorize(Policy = "Tasks.Read")]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetAll()
         {
             var tasks = await _taskService.GetAllAsync();
@@ -25,6 +27,7 @@ namespace TaskFlow.Api.Controllers
 
         // GET: api/tasks/5
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "Tasks.Read")]
         public async Task<ActionResult<TaskDto>> GetById(int id)
         {
             var task = await _taskService.GetByIdAsync(id);
@@ -34,6 +37,7 @@ namespace TaskFlow.Api.Controllers
 
         // POST: api/tasks
         [HttpPost]
+        [Authorize(Policy = "Tasks.create")]
         public async Task<ActionResult<TaskDto>> Create([FromBody] CreateTaskDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -49,6 +53,7 @@ namespace TaskFlow.Api.Controllers
 
         // PUT: api/tasks/5
         [HttpPut("{id:int}")]
+        [Authorize(Policy = "Tasks.update")]
         public async Task<ActionResult<TaskDto>> Update(int id, [FromBody] UpdateTaskDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -61,6 +66,7 @@ namespace TaskFlow.Api.Controllers
 
         // DELETE: api/tasks/5
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "Tasks.delete")]
         public async Task<IActionResult> Delete(int id)
         {
             var ok = await _taskService.DeleteAsync(id);
@@ -71,6 +77,7 @@ namespace TaskFlow.Api.Controllers
 
         // PUT: api/tasks/5/move  → para drag & drop
         [HttpPut("{id:int}/move")]
+        [Authorize(Policy = "Tasks.update")]
         public async Task<IActionResult> Move(int id, [FromBody] MoveTaskDto dto)
         {
             var ok = await _taskService.MoveAsync(id, dto);

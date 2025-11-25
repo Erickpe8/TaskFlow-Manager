@@ -1,35 +1,52 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Security.Claims;
+using System.Text;
 using TaskFlow.Api.Data;
 using TaskFlow.Api.Interfaces;
 using TaskFlow.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ----------------------------
-// 🔥 1. BASE DE DATOS
-// ----------------------------
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddHttpContextAccessor();
-
-// ----------------------------
-// 🔥 2. INYECCIÓN DE DEPENDENCIAS
-// ----------------------------
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ITaskService, TaskService>();
-builder.Services.AddScoped<IColumnService, ColumnService>();
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "TaskFlow.Api API",
+        Version = "v1"
+    });
 
-// ----------------------------
-// 🔥 3. CORS LISTO PARA LOCAL + VPS
-// ----------------------------
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Ingrese el token en el formato: Bearer {token}",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
+    };
+
+
+    options.AddSecurityDefinition("Bearer", securityScheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            securityScheme,
+            Array.Empty<string>()
+        }
+    });
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -50,69 +67,121 @@ builder.Services.AddCors(options =>
     });
 });
 
-// ----------------------------
-// 🔥 4. JWT CONFIG
-// ----------------------------
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? builder.Configuration["ConnectionStrings:DefaultConnection"]
+    ?? throw new InvalidOperationException("DefaultConnection is not configured.");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(connectionString));
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<IColumnService, ColumnService>();
+
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var jwtKey = jwtSection["Key"] ?? throw new Exception("Jwt:Key not configured");
-var jwtIssuer = jwtSection["Issuer"];
-var jwtAudience = jwtSection["Audience"];
+var jwtKey = jwtSection.GetValue<string>("Key")
+    ?? throw new InvalidOperationException("Jwt:Key is not configured.");
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
-builder.Services
-    .AddAuthentication(options =>
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateIssuerSigningKey = true,
+        ValidateLifetime = true,
+        ValidIssuer = jwtSection.GetValue<string>("Issuer"),
+        ValidAudience = jwtSection.GetValue<string>("Audience"),
+        IssuerSigningKey = signingKey,
+        ClockSkew = TimeSpan.Zero
+    };
+
+    options.Events = new JwtBearerEvents
     {
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters
+        OnTokenValidated = async context =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-        };
-    });
+            var tokenService = context.HttpContext.RequestServices.GetRequiredService<ITokenService>();
+            var jwt = context.SecurityToken as JsonWebToken;
+            var rawToken = jwt?.EncodedToken
+                       ?? context.Request.Headers["Authorization"]
+                               .ToString()
+                               .Replace("Bearer ", "", StringComparison.OrdinalIgnoreCase)
+                               .Trim();
+            var subjectId = context.Principal?.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)
+           ?? context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
 
-builder.Services.AddAuthorization();
+            if (string.IsNullOrWhiteSpace(subjectId) || !int.TryParse(subjectId, out var userId))
+            {
+                context.Fail("Token sin identificador de usuario.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(rawToken))
+            {
+                context.Fail("Token no válido.");
+                return;
+            }
+
+            var isActive = await tokenService.IsTokenActiveAsync(rawToken, userId, jwt?.ValidTo ?? DateTime.UtcNow);
+            if (!isActive)
+            {
+                context.Fail("El token está revocado o expiró.");
+            }
+        }
+    };
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    // USERS
+    options.AddPolicy("Users.Read", policy =>
+        policy.RequireClaim("permissions", "users.read"));
+    options.AddPolicy("Users.Create", policy =>
+        policy.RequireClaim("permissions", "users.create"));
+    options.AddPolicy("Users.Update", policy =>
+        policy.RequireClaim("permissions", "users.update"));
+    options.AddPolicy("Users.Delete", policy =>
+        policy.RequireClaim("permissions", "users.delete"));
+
+    // TASKS
+    options.AddPolicy("Tasks.Read", policy =>
+        policy.RequireClaim("permissions", "tasks.read"));
+    options.AddPolicy("Tasks.Create", policy =>
+        policy.RequireClaim("permissions", "tasks.create"));
+    options.AddPolicy("Tasks.Update", policy =>
+        policy.RequireClaim("permissions", "tasks.update"));
+    options.AddPolicy("Tasks.Delete", policy =>
+        policy.RequireClaim("permissions", "tasks.delete"));
+
+    // COLUMNS
+    options.AddPolicy("Columns.Read", policy =>
+        policy.RequireClaim("permissions", "columns.read"));
+    options.AddPolicy("Columns.Create", policy =>
+        policy.RequireClaim("permissions", "columns.create"));
+    options.AddPolicy("Columns.Update", policy =>
+        policy.RequireClaim("permissions", "columns.update"));
+    options.AddPolicy("Columns.Delete", policy =>
+        policy.RequireClaim("permissions", "columns.delete"));
+});
 
 var app = builder.Build();
-
-// ----------------------------
-// 🔥 5. SEED AUTOMÁTICO DEL USUARIO DEL DOCENTE GALINDO
-// ----------------------------
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await SeedData.InitializeAsync(context); // este se ejecuta una vez
-
-    // 🔥 Asegurar usuario obligatorio del profe
-    if (!context.Users.Any(u => u.Email == "doc_js_galindo@fesc.edu.co"))
-    {
-        context.Users.Add(new TaskFlow.Api.Models.User
-        {
-            Email = "doc_js_galindo@fesc.edu.co",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("0123456789"),
-            Role = "Admin",
-            FullName = "Docente José Galindo",
-            CreatedAt = DateTime.UtcNow
-        });
-        await context.SaveChangesAsync();
-    }
-}
-
-// ----------------------------
-// 🔥 6. MIDDLEWARE
-// ----------------------------
 app.UseCors("AllowFrontend");
-
 if (app.Environment.IsDevelopment())
 {
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        await SeedData.InitializeAsync(db);
+    }
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }
