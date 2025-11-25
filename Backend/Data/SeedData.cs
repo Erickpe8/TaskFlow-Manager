@@ -23,8 +23,8 @@ namespace TaskFlow.Api.Data
             await context.SaveChangesAsync();
 
             var colPendiente = columns[0].Id;
-            var colProgreso  = columns[1].Id;
-            var colDone      = columns[2].Id;
+            var colProgreso = columns[1].Id;
+            var colDone = columns[2].Id;
 
             var tasks = new List<TaskItem>
             {
@@ -47,6 +47,21 @@ namespace TaskFlow.Api.Data
                     Order = 1
                 }
             };
+
+            if (!context.Users.Any())
+            {
+                var passwordHash = BCrypt.Net.BCrypt.HashPassword("0123456789");
+
+                context.Users.Add(new User
+                {
+                    Email = "doc_js_galindo@fesc.edu.co",
+                    FullName = "Docente Revisión",
+                    Role = "Teacher",
+                    PasswordHash = passwordHash
+                });
+
+                await context.SaveChangesAsync();
+            }
 
             context.TaskItems.AddRange(tasks);
             await context.SaveChangesAsync();

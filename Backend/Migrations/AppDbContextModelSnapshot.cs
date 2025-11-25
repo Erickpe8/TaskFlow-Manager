@@ -76,6 +76,33 @@ namespace TaskFlow.Api.Migrations
                     b.ToTable("Tasks", (string)null);
                 });
 
+            modelBuilder.Entity("TaskFlow.Api.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+                });
+
             modelBuilder.Entity("TaskFlow.Api.Models.TaskItem", b =>
                 {
                     b.HasOne("TaskFlow.Api.Models.Column", "Column")

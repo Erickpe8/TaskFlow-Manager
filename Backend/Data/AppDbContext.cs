@@ -12,6 +12,7 @@ namespace TaskFlow.Api.Data
 
         public DbSet<Column> Columns { get; set; } = null!;
         public DbSet<TaskItem> TaskItems { get; set; } = null!;
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
