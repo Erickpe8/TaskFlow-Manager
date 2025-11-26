@@ -1,0 +1,10 @@
+{
+  "routes": {
+    "/": {},
+    "/dashboard": {},
+    "/dashboard/kanban": {},
+    "/dashboard/list": {},
+    "/login": {},
+    "/register": {}
+  }
+}

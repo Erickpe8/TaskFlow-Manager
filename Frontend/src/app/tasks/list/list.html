@@ -1,1 +1,244 @@
-<p>list works!</p>
+<div class="list-container">
+  <!-- HEADER -->
+  <div class="header">
+    <h2>Lista de Tareas</h2>
+    <button class="btn-create" (click)="openCreateModal()">
+      ➕ Nueva Tarea
+    </button>
+  </div>
+
+  <!-- FILTROS Y BÚSQUEDA -->
+  <div class="filters">
+    <div class="filter-row">
+      <div class="search-box">
+        <input type="text" [(ngModel)]="filter.search" (ngModelChange)="onSearchChange()"
+          placeholder="🔍 Buscar por título o descripción..." class="search-input" />
+      </div>
+
+      <select [(ngModel)]="filter.columnId" (change)="onFilterChange()" class="filter-select">
+        <option [value]="undefined">Todas las columnas</option>
+        <option *ngFor="let col of columns" [value]="col.Id">{{ col.Name }}</option>
+      </select>
+
+      <select [(ngModel)]="filter.priority" (change)="onFilterChange()" class="filter-select">
+        <option [value]="undefined">Todas las prioridades</option>
+        <option [value]="1">Baja</option>
+        <option [value]="2">Media</option>
+        <option [value]="3">Alta</option>
+        <option [value]="4">Urgente</option>
+      </select>
+
+      <button class="btn-clear" (click)="clearFilters()">Limpiar filtros</button>
+    </div>
+
+    <div class="info-row">
+      <span class="result-count">{{ totalCount }} resultados</span>
+      <div class="page-size-selector">
+        <label>Mostrar:</label>
+        <select [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+          <option *ngFor="let size of pageSizes" [value]="size">{{ size }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Cargando tareas...</p>
+  </div>
+
+  <!-- TABLA -->
+  <div *ngIf="!loading" class="table-container">
+    <table class="tasks-table">
+      <thead>
+        <tr>
+          <th (click)="sort('title')" class="sortable">
+            Título {{ getSortIcon('title') }}
+          </th>
+          <th>Descripción</th>
+          <th (click)="sort('column')" class="sortable">
+            Columna {{ getSortIcon('column') }}
+          </th>
+          <th (click)="sort('priority')" class="sortable">
+            Prioridad {{ getSortIcon('priority') }}
+          </th>
+          <th (click)="sort('duedate')" class="sortable">
+            Fecha límite {{ getSortIcon('duedate') }}
+          </th>
+          <th (click)="sort('order')" class="sortable">
+            Orden {{ getSortIcon('order') }}
+          </th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let task of tasks" class="task-row">
+          <td class="task-title">{{ task.Title }}</td>
+          <td class="task-description">
+            {{ task.Description || '-' }}
+          </td>
+          <td>
+            <span class="column-badge">{{ task.ColumnName }}</span>
+          </td>
+          <td>
+            <span [class]="'priority-badge ' + getPriorityClass(task.Priority)">
+              {{ getPriorityLabel(task.Priority) }}
+            </span>
+          </td>
+          <td>{{ formatDate(task.DueDate) }}</td>
+          <td class="text-center">{{ task.Order }}</td>
+          <td class="actions">
+            <button class="btn-edit" (click)="openEditModal(task)" title="Editar">
+              ✏️
+            </button>
+            <button class="btn-delete" (click)="deleteTask(task)" title="Eliminar">
+              🗑️
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="tasks.length === 0">
+          <td colspan="7" class="no-results">
+            No se encontraron tareas con los filtros seleccionados
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGINACIÓN -->
+  <div *ngIf="!loading && totalPages > 1" class="pagination">
+    <button class="page-btn" (click)="goToPage(1)" [disabled]="currentPage === 1">
+      ⏮ Primero
+    </button>
+
+    <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+      ◀ Anterior
+    </button>
+
+    <button *ngFor="let page of pages" class="page-btn" [class.active]="page === currentPage" (click)="goToPage(page)">
+      {{ page }}
+    </button>
+
+    <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+      Siguiente ▶
+    </button>
+
+    <button class="page-btn" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">
+      Último ⏭
+    </button>
+  </div>
+</div>
+
+<!-- MODAL CREAR -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Nueva Tarea</h3>
+      <button class="btn-close" (click)="closeCreateModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Título *</label>
+        <input type="text" [(ngModel)]="taskForm.Title" placeholder="Título de la tarea" class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea [(ngModel)]="taskForm.Description" placeholder="Descripción opcional" class="form-control"
+          rows="3"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Columna *</label>
+          <select [(ngModel)]="taskForm.ColumnId" class="form-control">
+            <option *ngFor="let col of columns" [value]="col.Id">{{ col.Name }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Prioridad</label>
+          <select [(ngModel)]="taskForm.Priority" class="form-control">
+            <option [value]="undefined">Sin prioridad</option>
+            <option [value]="1">Baja</option>
+            <option [value]="2">Media</option>
+            <option [value]="3">Alta</option>
+            <option [value]="4">Urgente</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha límite</label>
+        <input type="date" [(ngModel)]="taskForm.DueDate" class="form-control" />
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeCreateModal()">Cancelar</button>
+      <button class="btn-save" (click)="createTask()">Crear</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Editar Tarea</h3>
+      <button class="btn-close" (click)="closeEditModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Título *</label>
+        <input type="text" [(ngModel)]="editForm.Title" placeholder="Título de la tarea" class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea [(ngModel)]="editForm.Description" placeholder="Descripción opcional" class="form-control"
+          rows="3"></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Columna *</label>
+          <select [(ngModel)]="editForm.ColumnId" class="form-control">
+            <option *ngFor="let col of columns" [value]="col.Id">{{ col.Name }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Prioridad</label>
+          <select [(ngModel)]="editForm.Priority" class="form-control">
+            <option [value]="undefined">Sin prioridad</option>
+            <option [value]="1">Baja</option>
+            <option [value]="2">Media</option>
+            <option [value]="3">Alta</option>
+            <option [value]="4">Urgente</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha límite</label>
+        <input type="date" [(ngModel)]="editForm.DueDate" class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label>Orden</label>
+        <input type="number" [(ngModel)]="editForm.Order" class="form-control" min="0" />
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeEditModal()">Cancelar</button>
+      <button class="btn-save" (click)="updateTask()">Guardar</button>
+    </div>
+  </div>
+</div>

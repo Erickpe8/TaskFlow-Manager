@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./Backend
+    container_name: taskflow-backend
+    ports:
+      - "5208:5208"
+    volumes:
+      - taskflow_db:/data
+    environment:
+      ASPNETCORE_URLS: "http://+:5208"
+      ConnectionStrings__DefaultConnection: "Data Source=/data/AuthDb.db"
+      Jwt__Issuer: "MiApi"
+      Jwt__Audience: "MiApiClient"
+      Jwt__Key: "asdasds121aedaaAASDASDASdasdqejdhsdfjhba123213"
+      Jwt__ExpiresMinutes: "60"
+      Database__AutoMigrate: "true"
+      Swagger__Enabled: "true"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Frontend
+    container_name: taskflow-frontend
+    ports:
+      - "4200:4000"   # 4200 externo → 4000 interno SSR
+    depends_on:
+      - backend
+    environment:
+      API_URL: "http://localhost:5208"  # Angular lo usa en tu servicio
+    restart: unless-stopped
+
+volumes:
+  taskflow_db:

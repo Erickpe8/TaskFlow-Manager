@@ -26,6 +26,8 @@
 
 - [Descripción General](#-descripción-general)
 - [Características Principales](#-características-principales)
+- [Arquitectura del Sistema](#-arquitectura-del-sistema)
+- [Tecnologías Utilizadas](#-tecnologías-utilizadas)
 - [Requisitos Previos](#-requisitos-previos)
 - [Instalación y Configuración](#-instalación-y-configuración)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
@@ -34,6 +36,7 @@
 - [API Endpoints](#-api-endpoints)
 - [Comandos Útiles](#-comandos-útiles)
 - [Dockerización](#-dockerización)
+- [Roadmap](#-roadmap)
 - [Contribuidores](#-contribuidores)
 - [Licencia](#-licencia)
 - [Contacto](#-contacto)
@@ -1456,8 +1459,8 @@ Este proyecto fue desarrollado por un equipo de estudiantes de la **Facultad de 
       🏗️ 💻 📖 🎨 🔧
     </td>
     <td align="center">
-      <a href="https://github.com/Santiago-Rueda-Q">
-        <img src="https://github.com/Santiago-Rueda-Q.png" width="100px;" alt="Santiago Rueda"/><br />
+      <a href="https://github.com/Santiago_Rueda_Q">
+        <img src="https://github.com/Santiago_Rueda_Q.png" width="100px;" alt="Santiago Rueda"/><br />
         <sub><b>Santiago Rueda Quintero</b></sub>
       </a><br />
       <sub>Backend Developer</sub><br />
@@ -1537,7 +1540,7 @@ SOFTWARE.
 
 ### Erick Sebastián Pérez Carvajal
 - **GitHub**: [@Erickpe8](https://github.com/Erickpe8)
-- **Email**: ericksperezc@gmail.com
+- **Email**: erickpe8@example.com
 - **LinkedIn**: [Erick Pérez](https://linkedin.com/in/erickpe8)
 
 ### Repositorio del Proyecto
@@ -1587,7 +1590,7 @@ Queremos agradecer a:
 **Programa**: Ingeniería de Software
 **Asignatura**: DAAR (Desarrollo de Aplicaciones Avanzadas en Red)  
 **Semestre**: 2025-2  
-**Tipo de Proyecto**: Proyecto Final de Asignatura Desarrollo Avanzado de Aplicaciones en Red
+**Tipo de Proyecto**: Proyecto Final de Asignatura
 
 ### 📋 Objetivos Académicos Alcanzados
 
@@ -1623,12 +1626,7 @@ Este proyecto está actualmente en desarrollo activo. Algunas características m
 
 ### 📸 Capturas de Pantalla
 
-<img width="1600" height="773" alt="image" src="https://github.com/user-attachments/assets/2bbf840c-0210-40eb-8f8c-1d34d6ec0d31" />
-<img width="1600" height="771" alt="image" src="https://github.com/user-attachments/assets/6ef3ed23-042f-4b2e-9e7f-b8fbfa2305bd" />
-<img width="1600" height="781" alt="image" src="https://github.com/user-attachments/assets/0cf53e00-6968-45bb-aab2-77c46ba86150" />
-<img width="1600" height="837" alt="image" src="https://github.com/user-attachments/assets/c2445313-d802-4beb-8827-7d8423f8f7c9" />
-
-
+*(Proximamente: Screenshots del tablero Kanban, login, dashboard, etc.)*
 
 ### 🎥 Video Demostrativo
 
