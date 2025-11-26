@@ -26,8 +26,6 @@
 
 - [Descripción General](#-descripción-general)
 - [Características Principales](#-características-principales)
-- [Arquitectura del Sistema](#-arquitectura-del-sistema)
-- [Tecnologías Utilizadas](#-tecnologías-utilizadas)
 - [Requisitos Previos](#-requisitos-previos)
 - [Instalación y Configuración](#-instalación-y-configuración)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
@@ -36,7 +34,6 @@
 - [API Endpoints](#-api-endpoints)
 - [Comandos Útiles](#-comandos-útiles)
 - [Dockerización](#-dockerización)
-- [Roadmap](#-roadmap)
 - [Contribuidores](#-contribuidores)
 - [Licencia](#-licencia)
 - [Contacto](#-contacto)
@@ -882,68 +879,72 @@ Task<bool> ChangeStatusAsync(int taskId, TaskStatus newStatus);
 
 ## ⚡ Funcionalidades Implementadas
 
-### ✅ Módulo de Autenticación
-
-- [x] Registro de usuarios con validación
-- [x] Login con email y contraseña
+### 🛂 Módulo de Autenticación
+- [x] Registro de usuarios con validación de datos
+- [x] Inicio de sesión con email y contraseña
 - [x] Generación de JWT con expiración configurable
 - [x] Refresh token automático
 - [x] Logout y revocación de tokens
-- [x] Recuperación de contraseña (email)
-- [x] Protección de rutas con Guards
-- [x] Interceptores HTTP para manejo de tokens
+- [x] Recuperación de contraseña vía email
+- [x] Protección de rutas (AuthGuard + RoleGuard)
+- [x] Interceptores HTTP para manejo de tokens y errores
 
-### ✅ Módulo de Gestión de Tareas
+---
 
-- [x] **CRUD completo**:
-  - Crear tareas con título, descripción, prioridad y fecha
-  - Editar tareas existentes
-  - Eliminar tareas (soft delete)
-  - Visualizar detalles completos
+### 🗂️ Módulo de Gestión de Tareas
 
-- [x] **Tablero Kanban**:
-  - Columnas personalizables
-  - Drag & Drop fluido
-  - Actualización de estado en tiempo real
-  - Contador de tareas por columna
-  - Filtros por categoría y prioridad
+#### 📝 CRUD Completo
+- [x] Crear tareas con título, descripción, prioridad, fecha límite y categoría
+- [x] Editar tareas existentes
+- [x] Eliminar tareas (soft delete)
+- [x] Visualizar detalle completo de cada tarea
 
-- [x] **Sistema de Prioridades**:
-  - Baja (Low)
-  - Media (Medium)
-  - Alta (High)
-  - Crítica (Critical)
-  - Indicadores visuales de color
+#### 🗃️ Tablero Kanban Interactivo
+- [x] Columnas personalizables  
+- [x] Drag & Drop fluido  
+- [x] Actualización automática de estado  
+- [x] Contador de tareas por columna  
+- [x] Filtros por categoría, estado y prioridad  
 
-- [x] **Categorías**:
-  - Asignar categorías a tareas
-  - Filtrar por categoría
-  - Colores personalizados
+#### 🔥 Sistema de Prioridades
+- [x] Pendiente
+- [x] En progreso
+- [x] Realizada
+- [x] Indicadores visuales por color
 
-- [x] **Búsqueda y Filtros**:
-  - Búsqueda por título/descripción
-  - Filtro por estado
-  - Filtro por fecha de vencimiento
-  - Filtro por usuario asignado
+#### 🏷️ Categorías
+- [x] Asignar categorías a tareas  
+- [x] Filtro por categorías  
+- [x] Colores personalizados por categoría  
 
-### ✅ Módulo de Usuarios (Admin)
+#### 🔍 Búsqueda y Filtros Avanzados
+- [x] Búsqueda por título o descripción  
+- [x] Filtro por estado  
+- [x] Filtro por fecha de vencimiento  
+- [x] Filtro por usuario asignado  
+- [x] Filtro por categoría y prioridad  
 
-- [x] Listar todos los usuarios
+---
+
+### 👥 Módulo de Usuarios (Admin)
+- [x] Listado completo de usuarios
 - [x] Crear nuevos usuarios
-- [x] Editar información de usuarios
-- [x] Asignar/cambiar roles
-- [x] Desactivar/activar usuarios
+- [x] Editar información
+- [x] Asignar o cambiar roles
+- [x] Activar o desactivar usuarios
 - [x] Ver historial de actividad
 
-### ✅ Dashboard y Reportes
+---
 
+### 📊 Dashboard y Reportes
 - [x] Vista general con métricas
 - [x] Gráficos de productividad
-- [x] Tareas pendientes/completadas
+- [x] Conteo de tareas por estado
 - [x] Estadísticas por usuario
 - [x] Exportación a PDF
 - [x] Exportación a Excel
-- [x] Generación de reportes personalizados
+- [x] Reportes personalizados
+
 
 ---
 
@@ -1026,26 +1027,7 @@ POST /api/tasks
 }
 ```
 
-### 👥 Users (Admin only)
 
-| Método | Endpoint | Descripción | Auth | Role |
-|--------|----------|-------------|------|------|
-| GET | `/api/users` | Listar usuarios | Sí | Admin |
-| GET | `/api/users/{id}` | Obtener usuario | Sí | Admin |
-| POST | `/api/users` | Crear usuario | Sí | Admin |
-| PUT | `/api/users/{id}` | Actualizar usuario | Sí | Admin |
-| DELETE | `/api/users/{id}` | Eliminar usuario | Sí | Admin |
-| PATCH | `/api/users/{id}/role` | Cambiar rol | Sí | Admin |
-
-### 📊 Reports
-
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/reports/pdf` | Exportar a PDF | Sí |
-| GET | `/api/reports/excel` | Exportar a Excel | Sí |
-| GET | `/api/reports/stats` | Estadísticas generales | Sí |
-
----
 
 ## 💻 Comandos Útiles
 
@@ -1401,46 +1383,53 @@ docker-compose ps
 
 ## 🗺️ Roadmap
 
-### ✅ Fase 1: Fundamentos (Completado)
-- [x] Configuración inicial del proyecto
-- [x] Estructura de carpetas Backend y Frontend
-- [x] Conexión a base de datos
-- [x] Sistema de autenticación JWT
-- [x] CRUD básico de tareas
+## 📌 Roadmap del Proyecto
 
-### ✅ Fase 2: Funcionalidades Core (Completado)
-- [x] Tablero Kanban interactivo
-- [x] Drag & Drop de tareas
-- [x] Sistema de roles
-- [x] Filtros y búsqueda
-- [x] Exportación de datos
+### ✅ Fase 1: Planeación y Setup Inicial (Completado)
+- [x] Definición de la idea: tablero Kanban para organizar tareas de equipos pequeños.
+- [x] Elección del stack: **Backend .NET 10 (API REST)** + **Frontend Angular**.
+- [x] Creación del repositorio en GitHub y organización de ramas (`main`, ramas de desarrollo).
+- [x] Inicialización de los proyectos **Backend** y **Frontend**.
+- [x] Configuración básica del entorno de desarrollo y control de versiones.
 
-### 🚧 Fase 3: Mejoras y Optimización (En Progreso)
-- [ ] Tests unitarios (Backend y Frontend)
-- [ ] Tests de integración
-- [ ] Optimización de queries
-- [ ] Cache con Redis
-- [ ] Logging estructurado con Serilog
-- [ ] Monitoreo con Application Insights
+---
 
-### 📅 Fase 4: Características Avanzadas (Planificado)
-- [ ] Notificaciones en tiempo real (SignalR)
-- [ ] Sistema de comentarios y adjuntos
-- [ ] Versionado de tareas (historial)
-- [ ] Integraciones (Slack, Teams, Email)
-- [ ] PWA (Progressive Web App)
-- [ ] Aplicación móvil (Ionic/React Native)
-- [ ] IA para sugerencias de tareas
-- [ ] Dashboard de analíticas avanzado
+### ✅ Fase 2: Backend – API y Modelo de Dominio (Completado)
+- [x] Definición del modelo de dominio: `User`, `TaskItem`, `Column`, `Category`, `Role`.
+- [x] Configuración de **Entity Framework Core**, `AppDbContext` y migraciones iniciales.
+- [x] Creación de endpoints REST para:
+  - [x] Gestión de columnas (crear, listar, actualizar, eliminar).
+  - [x] Gestión de tareas (crear, mover, actualizar, eliminar).
+- [x] Implementación de autenticación con **JWT** (login, registro básico).
+- [x] Manejo centralizado de errores con *middleware* personalizado.
+- [x] Exposición y prueba de la API mediante **Swagger**.
 
-### 🚀 Fase 5: Despliegue y Escalabilidad (Futuro)
-- [ ] CI/CD con GitHub Actions
-- [ ] Despliegue en Azure/AWS
-- [ ] Kubernetes orchestration
-- [ ] Load balancing
-- [ ] Auto-scaling
-- [ ] Multi-tenant support
-- [ ] Internacionalización (i18n)
+---
+
+### ✅ Fase 3: Frontend – Interfaz y Experiencia de Usuario (Completado)
+- [x] Configuración de rutas principales en Angular (login, registro, tablero).
+- [x] Implementación de **guards** para proteger las rutas autenticadas.
+- [x] Creación de servicios Angular para consumo de API (`Auth`, `Tasks`, `Columns`).
+- [x] Construcción del tablero **Kanban**:
+  - [x] Listado de columnas y tareas por estado.
+  - [x] Creación y edición de tareas desde el frontend.
+  - [x] Movimiento de tareas entre columnas mediante **drag & drop**.
+- [x] Diseño responsive básico y mejoras de UX (feedback visual, estados de carga y error).
+
+---
+
+### ✅ Fase 4: Integración, Pruebas Manuales y Despliegue (Completado)
+- [x] Integración completa **Frontend ↔ Backend** con manejo de tokens JWT.
+- [x] Pruebas funcionales del flujo principal:
+  - [x] Registro / login de usuario.
+  - [x] Acceso al tablero Kanban.
+  - [x] Creación, edición, movimiento y eliminación de tareas.
+- [x] Configuración de imágenes Docker para frontend y backend.
+- [x] Despliegue del frontend en servidor (**CapRover / Grupolimon**):
+  - 🌐 Demo: `http://taskflow-frontend.grupolimon.online/login`
+- [x] Grabación de **video explicativo** del flujo de la aplicación y arquitectura.
+- [x] Documentación básica inicial en el `README`.
+
 
 ---
 
@@ -1459,8 +1448,8 @@ Este proyecto fue desarrollado por un equipo de estudiantes de la **Facultad de 
       🏗️ 💻 📖 🎨 🔧
     </td>
     <td align="center">
-      <a href="https://github.com/Santiago_Rueda_Q">
-        <img src="https://github.com/Santiago_Rueda_Q.png" width="100px;" alt="Santiago Rueda"/><br />
+      <a href="https://github.com/Santiago-Rueda-Q">
+        <img src="https://github.com/Santiago-Rueda-Q.png" width="100px;" alt="Santiago Rueda"/><br />
         <sub><b>Santiago Rueda Quintero</b></sub>
       </a><br />
       <sub>Backend Developer</sub><br />
@@ -1540,8 +1529,8 @@ SOFTWARE.
 
 ### Erick Sebastián Pérez Carvajal
 - **GitHub**: [@Erickpe8](https://github.com/Erickpe8)
-- **Email**: erickpe8@example.com
-- **LinkedIn**: [Erick Pérez](https://linkedin.com/in/erickpe8)
+- **Email**: ericksperez@gmail.com
+- **LinkedIn**: [Erick Pérez](https://www.linkedin.com/in/erick-sebastian-perez-carvajal-11a2772b6/)
 
 ### Repositorio del Proyecto
 - **URL**: [https://github.com/Erickpe8/TaskFlow-Manager](https://github.com/Erickpe8/TaskFlow-Manager)
@@ -1603,38 +1592,25 @@ Queremos agradecer a:
 ✅ Documentar técnicamente un sistema completo  
 ✅ Trabajar colaborativamente en equipo  
 
----
-
-## ⚠️ Estado del Proyecto
-
-**🚧 EN CONSTRUCCIÓN - PROYECTO ACTIVO**
-
-Este proyecto está actualmente en desarrollo activo. Algunas características mencionadas en este README pueden estar en proceso de implementación.
-
-### Versión Actual: `v0.9.0-beta`
-
-### Próximos Hitos:
-- [ ] Tests completos (unitarios e integración)
-- [ ] Optimización de rendimiento
-- [ ] Documentación de API completa
-- [ ] Despliegue en servidor de producción
-- [ ] Video demostrativo del sistema
 
 ---
 
 ## 🌟 Showcase
 
-### 📸 Capturas de Pantalla
+### 🔗 Demo en Vivo  
+Aplicación desplegada y completamente funcional:  
+👉 **http://taskflow-frontend.grupolimon.online/login**
 
-*(Proximamente: Screenshots del tablero Kanban, login, dashboard, etc.)*
+### 🎥 Video Demostrativo  
+Explicación del funcionamiento general, arquitectura y flujo completo del sistema:  
+👉 **https://youtu.be/1v-fYTbl4bo?si=10lJxwkmuFnNWA2j**
 
-### 🎥 Video Demostrativo
-
-*(Proximamente: Link al video explicativo del proyecto)*
-
-### 🔗 Demo en Vivo
-
-*(Proximamente: URL de la aplicación desplegada)*
+### 📸 Capturas de Pantalla  
+<img width="1600" height="781" alt="image" src="https://github.com/user-attachments/assets/844b68bd-8c6d-44c9-bbe5-80623747e173" />
+<img width="1600" height="773" alt="image" src="https://github.com/user-attachments/assets/36589366-1a22-416c-a81f-3e454ef25771" />
+<img width="1600" height="771" alt="image" src="https://github.com/user-attachments/assets/5d877fd2-2c13-4f08-a163-5ec21d6ae4ff" />
+<img width="1600" height="781" alt="image" src="https://github.com/user-attachments/assets/65763043-77f1-474b-89b2-fd7795820e95" />
+<img width="1600" height="837" alt="image" src="https://github.com/user-attachments/assets/ed78da17-27af-4c04-876f-85413ef5ade2" />
 
 ---
 
