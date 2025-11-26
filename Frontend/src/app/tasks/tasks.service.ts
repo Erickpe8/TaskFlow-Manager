@@ -8,7 +8,7 @@ import { ColumnDto, TaskDto, PaginatedResult, TaskFilter, CreateTaskDto, UpdateT
 })
 export class TasksService {
   private http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:5208/api';
+  private readonly baseUrl = 'http://taskflow-backend.grupolimon.online/api';
 
   private getAuthHeaders() {
     if (typeof window === 'undefined') {

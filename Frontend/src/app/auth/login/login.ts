@@ -48,7 +48,7 @@ export class LoginComponent {
     this.loading.set(true);
 
     // IMPORTANTE: Backend espera propiedades con PascalCase
-    this.http.post<AuthResponse>('http://localhost:5208/api/Auth/login', {
+    this.http.post<AuthResponse>('http://taskflow-backend.grupolimon.online/api/Auth/login', {
       Email: this.email,
       Password: this.password
     }).subscribe({

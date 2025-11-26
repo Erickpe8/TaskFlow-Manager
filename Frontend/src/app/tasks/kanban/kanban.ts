@@ -31,7 +31,7 @@ interface Column {
 })
 export class KanbanComponent implements OnInit {
   private http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:5208/api';
+  private readonly API_URL = 'http://taskflow-backend.grupolimon.online/api';
 
   columns: Column[] = [];
   connectedDropIds: string[] = [];
